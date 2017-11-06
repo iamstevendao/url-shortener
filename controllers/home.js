@@ -1,8 +1,4 @@
-/**
- * GET /
- */
 var mongodb = require('mongodb').MongoClient
-var url = require('url')
 var urls
 
 mongodb.connect(process.env.MONGODB, (err, db) => {
@@ -12,7 +8,7 @@ mongodb.connect(process.env.MONGODB, (err, db) => {
   }
   urls = db.collection('urls')
   console.log('connected to server *******')
-  //db.close()
+  // db.close()
 })
 
 exports.index = (req, res) => {
@@ -23,30 +19,48 @@ exports.index = (req, res) => {
 
 exports.shortenUrl = (req, res) => {
   let originalUrl = req.body.url // requested url
-  let responseUrl = req.protocol + '://' + req.get('host') + req.originalUrl // responsed url
-  let response = { title: 'Home', request: originalUrl, response: 'failed' }
-  // verify the url
+  let resObject = { title: 'Home', request: originalUrl, response: 'failed' }
+  let resUrl = req.protocol + '://' + req.get('host') + req.originalUrl // responsed url
 
+  // verify the url
+  if (!isValid(originalUrl)) {
+    resObject.response = 'Please enter a fully valid url, with "https://"'
+    res.render('home', resObject)
+  }
   // count the number of collections
   urls.count((err, num) => {
-    if (err) throw err
+    if (err) {
+      resObject.response = 'Can not retreive data from database!'
+      res.render('home', resObject)
+    }
     // insert new url into collection
     urls.insert({ id: ++num, url: originalUrl }, (err, result) => {
       if (err) { throw err }
       // update responseUrl
-      responseUrl += num.toString()
-      response.response = responseUrl
-
-      // response
-      res.render('home', response)
+      resUrl += num.toString()
+      resObject.response = resUrl
     })
+    // response
+    res.render('home', resObject)
   })
+}
 
-
+function isValid (str) {
+  var pattern = new RegExp('^(https?:\/\/)?' + // protocol
+    '((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|' + // domain name
+    '((\d{1,3}\.){3}\d{1,3}))' + // OR ip (v4) address
+    '(\:\d+)?(\/[-a-z\d%_.~+]*)*' + // port and path
+    '(\?[;&a-z\d%_.~+=-]*)?' + // query string
+    '(\#[-a-z\d_]*)?$', 'i') // fragment locater
+  if (!pattern.test(str)) {
+    return false
+  }
+  return true
 }
 
 exports.redirect = (req, res) => {
-  // urls.find({id: req.params.url}, (err, data) => {
-
-  // })
+  urls.find({ id: +req.params.id }).toArray((err, data) => {
+    if (data)
+      res.redirect(data[0].url)
+  })
 }
