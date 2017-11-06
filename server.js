@@ -8,7 +8,6 @@ var flash = require('express-flash')
 var bodyParser = require('body-parser')
 var expressValidator = require('express-validator')
 var dotenv = require('dotenv')
-var mongodb = require('mongodb').MongoClient
 
 // Load environment variables from .env file
 dotenv.load()
@@ -19,14 +18,6 @@ var contactController = require('./controllers/contact')
 
 var app = express()
 var urls
-
-mongodb.connect(process.env.MONGODB, (err, db) => {
-  if (err) {
-    console.log('Unable to connect to the MongoDB server. Error: ', err)
-    return
-  }
-  db.close()
-})
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')
@@ -41,7 +32,10 @@ app.use(session({ secret: process.env.SESSION_SECRET, resave: true, saveUninitia
 app.use(flash())
 app.use(express.static(path.join(__dirname, 'public')))
 
-app.route('/').get(homeController.index)
+app.route('/')
+  .get(homeController.index)
+  .post(homeController.shortenUrl)
+app.route('/:id').get(homeController.redirect)
 app.route('/contact')
   .get(contactController.contactGet)
   .post(contactController.contactPost)

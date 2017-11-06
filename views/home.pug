@@ -24,8 +24,9 @@ block content
             .form-group
               label.col-sm-2(for='url') Your Url
               .col-sm-8
-                input.form-control(type='text', name='url', id='url', autofocus=true)
+                input.form-control(type='text', name='url', id='url', autofocus=true, value=request)
             .form-group
               .col-sm-offset-2.col-sm-8
                 button.btn.btn-success(type='submit') Send
+          h3=response
       
