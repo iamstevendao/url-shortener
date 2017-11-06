@@ -1,0 +1,31 @@
+extends layout
+
+block content
+  .container-fluid
+    if messages.error
+      .alert.alert-danger(role='alert')
+        for error in messages.error
+          div= error.msg
+    if messages.success
+      .alert.alert-success(role='alert')
+        for success in messages.success
+          div= success.msg
+    if messages.info
+      .alert.alert-info(role='alert')
+        for info in messages.info
+          div= info.msg
+
+    .container
+      .panel
+        .panel-heading
+          h3.panel-title Url Shortener
+        .panel-body
+          form.form-horizontal(method='POST')
+            .form-group
+              label.col-sm-2(for='url') Your Url
+              .col-sm-8
+                input.form-control(type='text', name='url', id='url', autofocus=true)
+            .form-group
+              .col-sm-offset-2.col-sm-8
+                button.btn.btn-success(type='submit') Send
+      
