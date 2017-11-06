@@ -17,7 +17,6 @@ var homeController = require('./controllers/home')
 var contactController = require('./controllers/contact')
 
 var app = express()
-var urls
 
 app.set('views', path.join(__dirname, 'views'))
 app.set('view engine', 'pug')

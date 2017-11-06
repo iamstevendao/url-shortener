@@ -50,7 +50,6 @@ exports.shortenUrl = (req, res) => {
       res.render('home', resObject)
     })
   })
-  return
 }
 
 function isUrlValid (str) {
@@ -68,7 +67,9 @@ function isUrlValid (str) {
 
 exports.redirect = (req, res) => {
   urls.find({ id: +req.params.id }).toArray((err, data) => {
-    if (data.length > 0)
-      res.redirect(data[0].url)
+    if (err) {
+      throw err
+    }
+    if (data.length > 0) { res.redirect(data[0].url) }
   })
 }
