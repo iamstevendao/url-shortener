@@ -23,44 +23,52 @@ exports.shortenUrl = (req, res) => {
   let resUrl = req.protocol + '://' + req.get('host') + req.originalUrl // responsed url
 
   // verify the url
-  if (!isValid(originalUrl)) {
+  if (!isUrlValid(originalUrl)) {
     resObject.response = 'Please enter a fully valid url, with "https://"'
     res.render('home', resObject)
+    return
   }
   // count the number of collections
   urls.count((err, num) => {
     if (err) {
+      // can not get data
       resObject.response = 'Can not retreive data from database!'
       res.render('home', resObject)
+      return
     }
     // insert new url into collection
     urls.insert({ id: ++num, url: originalUrl }, (err, result) => {
-      if (err) { throw err }
-      // update responseUrl
-      resUrl += num.toString()
-      resObject.response = resUrl
+      if (err) {
+        console.log(err)
+        resObject.response = 'Can not insert new document into database!'
+      } else {
+        // update responseUrl
+        resUrl += num.toString()
+        resObject.response = resUrl
+      }
+      // response
+      res.render('home', resObject)
     })
-    // response
-    res.render('home', resObject)
   })
+  return
 }
 
-function isValid (str) {
-  var pattern = new RegExp('^(https?:\/\/)?' + // protocol
-    '((([a-z\d]([a-z\d-]*[a-z\d])*)\.)+[a-z]{2,}|' + // domain name
-    '((\d{1,3}\.){3}\d{1,3}))' + // OR ip (v4) address
-    '(\:\d+)?(\/[-a-z\d%_.~+]*)*' + // port and path
-    '(\?[;&a-z\d%_.~+=-]*)?' + // query string
-    '(\#[-a-z\d_]*)?$', 'i') // fragment locater
-  if (!pattern.test(str)) {
-    return false
-  }
-  return true
+function isUrlValid (str) {
+  // credits: https://stackoverflow.com/a/45567717/5706403
+
+  let pattern = new RegExp('^(https?:\\/\\/)?' + // protocol
+    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // domain name and extension
+    '((\\d{1,3}\\.){3}\\d{1,3}))' + // OR ip (v4) address
+    '(\\:\\d+)?' + // port
+    '(\\/[-a-z\\d%@_.~+&:]*)*' + // path
+    '(\\?[;&a-z\\d%@_.,~+&:=-]*)?' + // query string
+    '(\\#[-a-z\\d_]*)?$', 'i') // fragment locator
+  return pattern.test(str)
 }
 
 exports.redirect = (req, res) => {
   urls.find({ id: +req.params.id }).toArray((err, data) => {
-    if (data)
+    if (data.length > 0)
       res.redirect(data[0].url)
   })
 }
